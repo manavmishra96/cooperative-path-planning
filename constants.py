@@ -8,14 +8,16 @@ class CONSTANTS:
     def __init__(self):
         self.epsilon = 0.00001
         self.gridSize = 50
-        self.commRange = 10
+        self.commRange = 1000
         self.decay = 1
-        self.Rmin = 400
+        self.Rmin = -400
         self.num_episode = 30000
         self.len_episode = 1000
 
-        self.NUM_AGENTS = 3
+        self.NUM_AGENTS = 1
         self.NUM_IMU = 1
+
+        self.directory = "models/test5"
         
         self.isShared = True
         self.action_uncertainity = np.matrix([[0.5, 0.0],

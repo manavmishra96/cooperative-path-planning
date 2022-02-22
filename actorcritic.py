@@ -21,9 +21,12 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from env import PathPlan
+from constants import CONSTANTS
 
-NUM_AGENTS = 3
-NUM_IMU = 1
+const = CONSTANTS()
+
+NUM_AGENTS = const.NUM_AGENTS
+NUM_IMU = const.NUM_IMU
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
@@ -73,17 +76,21 @@ class ActorCritic(nn.Module):
             nn.ReLU(),
             nn.Linear(32, 16),
             nn.ReLU(),
-            nn.Linear(16, 4)
-            # nn.Tanh()
+            nn.Linear(16, 16),
+            nn.ReLU(),
+            nn.Linear(16, 4),
+            nn.Tanh()
         )
         
         self.reg2 = nn.Sequential(
-            nn.Linear(3, 500),
+            nn.Linear(3, 12),
             nn.ReLU(),
-            nn.Linear(500, 256),
+            nn.Linear(12, 8),
             nn.ReLU(),
-            nn.Linear(256, 1)
-            # nn.Tanh()
+            nn.Linear(8, 4),
+            nn.ReLU(),
+            nn.Linear(4, 1),
+            nn.Tanh()
         )
         self.train()
 
@@ -120,6 +127,10 @@ class ActorCritic(nn.Module):
         state_value = self.value_layer(state)
         return action_logprobs, torch.squeeze(state_value), dist_entropy
 
+    def make_np(self, x):
+        y = [o.data.cpu().numpy() for o in x]
+        return y
+
     def act(self, state, memory, num_agents):
         with torch.no_grad():
             state = torch.from_numpy(state).float().to(device)
@@ -135,9 +146,10 @@ class ActorCritic(nn.Module):
                 memory.actions.append(action[agent_index].view(-1))
                 memory.logprobs.append(dist.log_prob(action[agent_index])[agent_index])
                 action_list.append(action[agent_index])
+        action_list = self.make_np(action_list)
         return action_list
 
-    def act_max(self, state, memory, num_agents, full):
+    def act_max(self, state, memory, num_agents):
         with torch.no_grad():
             state = torch.from_numpy(state).float().to(device)
             action_param = self.action_layer(state)
@@ -153,4 +165,5 @@ class ActorCritic(nn.Module):
                 memory.logprobs.append(dist.log_prob(action[agent_index])[agent_index])
                 action_list.append(action[agent_index].item())
         return action_list
+
         

@@ -147,10 +147,10 @@ class agent():
 
 class PathPlan(gym.Env):
     def __init__(self,
-                n_agents = 3,
-                n_anchor = 1,
+                n_agents = 2,
+                n_anchor = 2,
                 file=None, 
-                max_speed = 5.0,
+                max_speed = 4.0,
                 goal_tolerance = 2.0,
                 decay = 1,
                 Rmin = -400
@@ -185,7 +185,11 @@ class PathPlan(gym.Env):
         """Define the agents from Agent class"""
         self.agents = [agent(x=self.start_locations[i][0], y=self.start_locations[i][1], imu=False, agent_id=i) for i in range(self.n_agents)]
 
-        anchor_idx = random.sample(range(1, self.n_agents), self.n_anchor)
+        if self.n_agents == self.n_anchor:
+            anchor_idx = range(n_agents)
+        else:
+            anchor_idx = random.sample(range(1, self.n_agents), self.n_anchor)
+
         for idx in anchor_idx:
             self.agents[idx].isIMU = True
             self.agents[idx].is_localized = 1
@@ -206,7 +210,11 @@ class PathPlan(gym.Env):
         """Define the agents from Agent class"""
         self.agents = [agent(x=self.start_locations[i][0], y=self.start_locations[i][1], imu=False, agent_id=i) for i in range(self.n_agents)]
 
-        anchor_idx = random.sample(range(1, self.n_agents), self.n_anchor)
+        if self.n_agents == self.n_anchor:
+            anchor_idx = range(n_agents)
+        else:
+            anchor_idx = random.sample(range(1, self.n_agents), self.n_anchor)
+
         for idx in anchor_idx:
             self.agents[idx].isIMU = True
             self.agents[idx].is_localized = 1
@@ -220,14 +228,14 @@ class PathPlan(gym.Env):
 
     def step(self, action):
         self.steps += 1
-        delta_t = 1.0
+        delta_t = 0.1
         old_state = self.state.copy()
         new_state = []
 
         for i, act in enumerate(action):
-            vx = self.max_speed * math.tanh(act[0])
-            vy = self.max_speed * math.tanh(act[1])
-            print(vx,vy)
+            vx = self.max_speed * act[0]
+            vy = self.max_speed * act[1]
+            # print(vx,vy)
 
             dx, dy = vx * delta_t, vy * delta_t
 
@@ -237,7 +245,8 @@ class PathPlan(gym.Env):
                 self.agents[i].x = self.agents[i].x + dx
                 self.agents[i].y = self.agents[i].y + dy
             else:
-                self.reward[i] = -10000
+                self.agents[i].x = self.agents[i].x 
+                self.agents[i].y = self.agents[i].y 
 
             self.graph = self.generate_graph_()
             self.update_agent_obs(self.agents[i]) 
@@ -248,8 +257,7 @@ class PathPlan(gym.Env):
                 self.agents[i].update_agent(dx, dy, self.grid)
 
             location = np.array([self.agents[i].x, self.agents[i].y])
-            self.reward[i] = 0.5 * (max(self.reward[i] - self.decay, self.Rmin) * 
-                        np.linalg.norm(self.goal_locations[i] - location)) + 0.5 * 50 * self.agents[i].is_localized
+            self.reward[i] = -0.5 * np.linalg.norm(self.goal_locations[i] - location) #+ 0.5 * 50 * self.agents[i].is_localized
             self.done[i] = False
             self.info[i] = {}
 
@@ -272,6 +280,7 @@ class PathPlan(gym.Env):
     
 
     def obs_collison(self, dx, dy):
+        dx, dy = min(dx, const.gridSize-1), min(dy, const.gridSize-1)
         return True if (self.grid[int(dx)][int(dy)] == 200) else False
 
 
@@ -318,17 +327,23 @@ class PathPlan(gym.Env):
 
     def plot_map(self):
         plt.figure(figsize=(10, 10))
-        # plt.axis('off')
-        plt.title("RL-DCL simulations")
+        plt.axis('off')
+        # plt.title("RL-DCL simulations")
         plt.xlim([0, const.gridSize])
         plt.ylim([0, const.gridSize])
 
+        cmap = plt.cm.binary
+        plt.imshow(self.grid, cmap=cmap, vmin=0, vmax=200, alpha=0.85)
+
         for i, agent in enumerate(self.agents):
-            plt.plot(agent.x, agent.y, marker='o', color=self.color[i])
+            if agent.isIMU:
+                plt.plot(agent.x, agent.y, marker='s', color=self.color[i])
+            else:
+                plt.plot(agent.x, agent.y, marker='o', color=self.color[i])
             plt.scatter(self.goal_locations[i][0], self.goal_locations[i][1], s=250, facecolors='none', edgecolors=self.color[i], linestyle='--')
 
         plt.savefig(self.file+"/images/%s.jpg" % str(self.steps), bbox_inches='tight',pad_inches = 0)
-        plt.clf()
+        plt.close()
         return
         
     def render(self):

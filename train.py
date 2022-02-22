@@ -25,7 +25,7 @@ warnings.filterwarnings('ignore')
 
 const = CONSTANTS()
 
-directory = "models/test2"
+directory = const.directory
 print (directory)
 try:
     os.makedirs(directory, exist_ok = True)
@@ -56,6 +56,8 @@ loss = None
 memory = Memory()
 
 env = PathPlan(n_agents=NUM_AGENTS, n_anchor=NUM_IMU, file=directory)
+print("Start position: ", env.start_locations)
+print("End position: ", env.goal_locations)
 RL = PPO(env, NUM_AGENTS)
 
 for episode in tqdm(range(NUM_EPISODES)):
@@ -109,7 +111,6 @@ for episode in tqdm(range(NUM_EPISODES)):
     # post episode
     # if (episode%100 == 0):
     #     env.render()
-
 
     reward_history.append(episodeReward)
         
