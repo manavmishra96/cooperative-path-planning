@@ -233,8 +233,8 @@ class PathPlan(gym.Env):
         new_state = []
 
         for i, act in enumerate(action):
-            vx = self.max_speed * act[0]
-            vy = self.max_speed * act[1]
+            vx = self.max_speed * math.tanh(act[0])
+            vy = self.max_speed * math.tanh(act[1])
             # print(vx,vy)
 
             dx, dy = vx * delta_t, vy * delta_t
@@ -244,9 +244,6 @@ class PathPlan(gym.Env):
             if not self.obs_collison(temp_dx,temp_dy):
                 self.agents[i].x = self.agents[i].x + dx
                 self.agents[i].y = self.agents[i].y + dy
-            else:
-                self.agents[i].x = self.agents[i].x 
-                self.agents[i].y = self.agents[i].y 
 
             self.graph = self.generate_graph_()
             self.update_agent_obs(self.agents[i]) 
@@ -257,7 +254,7 @@ class PathPlan(gym.Env):
                 self.agents[i].update_agent(dx, dy, self.grid)
 
             location = np.array([self.agents[i].x, self.agents[i].y])
-            self.reward[i] = -0.5 * np.linalg.norm(self.goal_locations[i] - location) #+ 0.5 * 50 * self.agents[i].is_localized
+            self.reward[i] = np.exp(-1.0 * np.linalg.norm(self.goal_locations[i] - location)) #+ 0.5 * 50 * self.agents[i].is_localized
             self.done[i] = False
             self.info[i] = {}
 

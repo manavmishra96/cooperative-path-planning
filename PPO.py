@@ -55,10 +55,10 @@ class PPO:
         self.policy_old.load_state_dict(self.policy.state_dict())
 
         self.MseLoss = nn.MSELoss()
-        idx = 0
-        while os.path.exists(f"tf_log/demo_CNN%s" % idx):
-            idx = idx + 1   
-        self.sw = SummaryWriter(log_dir=f"tf_log/demo_CNN%s" % idx)
+        # idx = 0
+        # while os.path.exists(f"tf_log/demo_%s" % const.directory):
+        #     idx = idx + 1   
+        self.sw = SummaryWriter(log_dir=f"tf_log/demo_%s" % const.file)
         print(f"Log Dir: {self.sw.log_dir}")
         
     def change_num_agents(self, num_agents):

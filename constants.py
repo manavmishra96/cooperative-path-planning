@@ -17,7 +17,8 @@ class CONSTANTS:
         self.NUM_AGENTS = 1
         self.NUM_IMU = 1
 
-        self.directory = "models/test5"
+        self.file = "test7"
+        self.directory = "models/" + self.file
         
         self.isShared = True
         self.action_uncertainity = np.matrix([[0.5, 0.0],

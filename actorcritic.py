@@ -78,8 +78,7 @@ class ActorCritic(nn.Module):
             nn.ReLU(),
             nn.Linear(16, 16),
             nn.ReLU(),
-            nn.Linear(16, 4),
-            nn.Tanh()
+            nn.Linear(16, 4)
         )
         
         self.reg2 = nn.Sequential(
@@ -89,8 +88,7 @@ class ActorCritic(nn.Module):
             nn.ReLU(),
             nn.Linear(8, 4),
             nn.ReLU(),
-            nn.Linear(4, 1),
-            nn.Tanh()
+            nn.Linear(4, 1)
         )
         self.train()
 
